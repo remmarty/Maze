@@ -76,7 +76,7 @@ struct GameEngine {
 
 int main() {
 	GameEngine engine = GameEngine();
-	engine.level.loadFromFile("D:\\Pop_projekt\\Pop_projekt\\Debug\\lvl1.txt");
+	engine.level.loadFromFile("D:\\Repos\\Maze\\lvl1.txt");
 	engine.drawLevel();
 	return 0;
 }
