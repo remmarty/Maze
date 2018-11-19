@@ -63,6 +63,7 @@ struct Level {
 struct Player {
 	int x = 5;
 	int y = 5;
+	bool exitAreaEntered = false;
 
 	void move(int vertical_step, int horizontal_step, int map[Settings::MAP_HEIGHT][Settings::MAP_WIDTH]){
 		// Pretend this will be our final position
@@ -70,16 +71,11 @@ struct Player {
 		int tmp_x = x + horizontal_step;
 
 		if (map[tmp_y][tmp_x] == Symbols::EXIT_AREA) {
-			std::cout << "You win!" << std::endl;
-			exit(0);
+			exitAreaEntered = true;
 		} else if (map[tmp_y][tmp_x] == Symbols::EMPTY) {
 			y += vertical_step;
 			x += horizontal_step;
 		}
-		else {
-			std::cout << "Illegal move!" << std::endl;
-		}
-		
 	}
 
 };
@@ -116,8 +112,18 @@ struct GameEngine {
 		// Initialize player position on the map
 		level.map[player.y][player.x] = Symbols::PLAYER;
 
-		while (input != Settings::KEY_EXIT) {
+		while (true) {
 			drawLevel();
+
+			// Check if game engine should terminate loop
+			if (player.exitAreaEntered) {
+				std::cout << "You win!" << std::endl;
+				break;
+			}
+			if (input == Settings::KEY_EXIT) {
+				std::cout << "Exiting..." << std::endl;
+				break;
+			}
 
 			// Clear old posistion in map
 			level.map[player.y][player.x] = Symbols::EMPTY;
