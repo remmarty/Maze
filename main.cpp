@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <fstream>
 #include <string>
 
@@ -31,7 +31,12 @@ struct Symbols {
 struct Settings {
 	static const int MAP_WIDTH = 20;
 	static const int MAP_HEIGHT = 13;
-	static constexpr double FOG_RADIUS = 3.0;
+	static constexpr double FOG_RADIUS = 5.0;
+	static const char KEY_EXIT = 'q';
+	static const char KEY_PLAYER_LEFT = 'a';
+	static const char KEY_PLAYER_RIGHT = 'd';
+	static const char KEY_PLAYER_UP = 'w';
+	static const char KEY_PLAYER_DOWN = 's';
 };
 
 struct Level {
@@ -81,42 +86,48 @@ struct GameEngine {
 	Player player;
 
 	char readInput() {
+		/*  Block until user will press a key */
 		char key;
 		std::cin >> key;
 		return key;
 	}
 
 	void triggerActions(char key) {
-		if (key == 'w')
+		/* Call behaviour depending on keyboard input */
+		if (key == Settings::KEY_PLAYER_UP)
 			player.move(-1, 0);
-		else if (key == 's')
+		else if (key == Settings::KEY_PLAYER_DOWN)
 			player.move(1, 0);
-		else if (key == 'a')
+		else if (key == Settings::KEY_PLAYER_LEFT)
 			player.move(0, -1);
-		else if (key == 'd')
+		else if (key == Settings::KEY_PLAYER_RIGHT)
 			player.move(0, 1);
-		else if (key == 'q')
-			exit(0);
 		else
+			// TODO
 			std::cout << "Key not handled TODO" << std::endl;
 	}
 
 	void runGameLoop() {
-		// TODO exit on Q
-		while (true) {
+		char input = NULL;
+
+		// Initialize player position on the map
+		level.map[player.y][player.x] = Symbols::PLAYER;
+
+		while (input != Settings::KEY_EXIT) {
 			drawLevel();
 
 			// Clear old posistion in map
 			level.map[player.y][player.x] = Symbols::EMPTY;
 
 			// Blocking until it gets some value from keyboard
-			char input = readInput();
+			input = readInput();
 			triggerActions(input);
 
 			// Put player in new position on map
 			level.map[player.y][player.x] = Symbols::PLAYER;
+
+			// Clear console
 			system("cls");
-			//clearScreen();
 		}
 	}
 
