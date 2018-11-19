@@ -2,6 +2,10 @@
 #include <fstream>
 #include <string>
 
+// TODO
+// - relative path to lvl file
+// - menu with lvl selection
+
 
 struct MapElement {
 	static const char VERTICAL = 186; // ║
@@ -44,19 +48,24 @@ struct Settings {
 struct Level {
 	int map[Settings::MAP_HEIGHT][Settings::MAP_WIDTH];
 
-	void loadFromFile(std::string filename) {
+	bool loadFromFile(std::string filename) {
 		std::ifstream file;
+
 		file.open(filename);
-		if (!file.is_open())
+		if (!file.is_open()) {
 			std::cout << "Could not read file: " << filename << std::endl;
-		else {
-			for (int y = 0; y < Settings::MAP_HEIGHT; y++) {
-				for (int x = 0; x < Settings::MAP_WIDTH; x++) {
-					file >> map[y][x];
-				}
+			file.close();
+			return false;
+		}
+		
+		// File successfully opened
+		for (int y = 0; y < Settings::MAP_HEIGHT; y++) {
+			for (int x = 0; x < Settings::MAP_WIDTH; x++) {
+				file >> map[y][x];
 			}
 		}
 		file.close();
+		return true;
 	}
 };
 
@@ -201,7 +210,9 @@ struct GameEngine {
 
 int main() {
 	GameEngine engine = GameEngine();
-	engine.level.loadFromFile("D:\\Repos\\Maze\\lvl1.txt");
-	engine.runGameLoop();
+	std::string lvlPath = "D:\\Repos\\Maze\\lvl1.txt";
+	bool lvlLoadSuccess = engine.level.loadFromFile(lvlPath);
+	if(lvlLoadSuccess)
+		engine.runGameLoop();
 	return 0;
 }
