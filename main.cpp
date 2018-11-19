@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include <string>
 
@@ -61,19 +61,6 @@ struct Level {
 struct Player {
 	int x = 5;
 	int y = 5;
-
-	void makeAction(char key, Level level) {
-		if (key == 'w')
-			move(-1, 0);
-		else if (key == 's')
-			move(1, 0);
-		else if (key == 'a')
-			move(0, -1);
-		else if (key == 'd')
-			move(0, 1);
-		else
-			std::cout << "Key not handled TODO" << std::endl;
-	}
 
 	void move(int vertical_step, int horizontal_step){
 		y += vertical_step;
