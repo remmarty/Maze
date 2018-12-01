@@ -46,7 +46,9 @@ struct Settings {
 };
 
 struct Level {
-	int map[Settings::MAP_HEIGHT][Settings::MAP_WIDTH];
+	int** map;
+	int mapHeight;
+	int mapWidth;
 
 	bool loadFromFile(std::string filename) {
 		std::ifstream file;
@@ -59,8 +61,22 @@ struct Level {
 		}
 		
 		// File successfully opened
-		for (int y = 0; y < Settings::MAP_HEIGHT; y++) {
-			for (int x = 0; x < Settings::MAP_WIDTH; x++) {
+		// Read map dimensions
+		file >> mapWidth;
+		file >> mapHeight;
+
+		// Allocate required amount of space
+
+		// Each element is a pointer to some array (int*)
+		map = new int*[mapHeight];
+		for (int i = 0; i < mapHeight; i++) {
+			// Find empty memory (where element is int) and assign that address to that pointer
+			map[i] = new int[mapWidth];
+		}
+
+		// Load map data
+		for (int y = 0; y < mapHeight; y++) {
+			for (int x = 0; x < mapWidth; x++) {
 				file >> map[y][x];
 			}
 		}
@@ -74,7 +90,7 @@ struct Player {
 	int y = 5;
 	bool exitAreaEntered = false;
 
-	void move(int vertical_step, int horizontal_step, int map[Settings::MAP_HEIGHT][Settings::MAP_WIDTH]){
+	void move(int vertical_step, int horizontal_step, int** map){
 		// Pretend this will be our final position
 		int tmp_y = y + vertical_step;
 		int tmp_x = x + horizontal_step;
@@ -150,8 +166,8 @@ struct GameEngine {
 	}
 
 	void drawLevel() {
-		for (int y = 0; y < Settings::MAP_HEIGHT; y++) {
-			for (int x = 0; x < Settings::MAP_WIDTH; x++) {
+		for (int y = 0; y < level.mapHeight; y++) {
+			for (int x = 0; x < level.mapWidth; x++) {
 				// Simulate fog using Euclidean distance
 				double distanceFromPlayer = sqrt(pow(player.y - y, 2) + pow(player.x - x, 2));
 				if (distanceFromPlayer > Settings::FOG_RADIUS) {
