@@ -208,10 +208,42 @@ struct GameEngine {
 	}
 };
 
+struct Menu {
+	int availableLevels = 3;
+
+	std::string askWhichLevel(){
+		std::string levelPaths[] = { "D:\\Repos\\Maze\\lvl1.txt", "D:\\Repos\\Maze\\lvl2.txt", "D:\\Repos\\Maze\\lvl3.txt" };
+
+		// Display available levels
+		for (int lvlID = 1; lvlID <= availableLevels; lvlID++) {
+			std::cout << "Level " << lvlID << std::endl;
+		}
+		std::cout << "Which level you want to play?" << std::endl;
+
+		// Wait for input
+		int selectedLevelID;
+		std::cin >> selectedLevelID;
+
+		// Clear console
+		system("cls");
+
+		if (selectedLevelID > availableLevels || selectedLevelID < 1) {
+			// TODO ask in loop
+			std::cout << "Incorrect lvl number, try again" << std::endl;
+			exit(-1);
+		}
+		return levelPaths[selectedLevelID - 1];
+	}
+
+};
+
 int main() {
+	Menu menu;
 	GameEngine engine = GameEngine();
-	std::string lvlPath = "D:\\Repos\\Maze\\lvl1.txt";
+
+	std::string lvlPath = menu.askWhichLevel();
 	bool lvlLoadSuccess = engine.level.loadFromFile(lvlPath);
+
 	if(lvlLoadSuccess)
 		engine.runGameLoop();
 	return 0;
