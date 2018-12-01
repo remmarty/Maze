@@ -37,7 +37,8 @@ struct Symbols {
 struct Settings {
 	static const int MAP_WIDTH = 20;
 	static const int MAP_HEIGHT = 13;
-	static constexpr double FOG_RADIUS = 5.0;
+	static constexpr double FOG_RADIUS = 10.0;
+	static const int SQUARE_FOG_RANGE = 2;
 	static const char KEY_EXIT = 'q';
 	static const char KEY_PLAYER_LEFT = 'a';
 	static const char KEY_PLAYER_RIGHT = 'd';
@@ -86,8 +87,8 @@ struct Level {
 };
 
 struct Player {
-	int x = 5;
-	int y = 5;
+	int x = 2;
+	int y = 10;
 	bool exitAreaEntered = false;
 
 	void move(int vertical_step, int horizontal_step, int** map){
@@ -168,12 +169,19 @@ struct GameEngine {
 	void drawLevel() {
 		for (int y = 0; y < level.mapHeight; y++) {
 			for (int x = 0; x < level.mapWidth; x++) {
+				// CIRCLE FOG
 				// Simulate fog using Euclidean distance
 				double distanceFromPlayer = sqrt(pow(player.y - y, 2) + pow(player.x - x, 2));
 				if (distanceFromPlayer > Settings::FOG_RADIUS) {
 					// (x, y) is away from the player
 					std::cout << MapElement::FOG;
 				}
+
+				// SQUARE FOG
+				//if (abs(player.x - x) > Settings::SQUARE_FOG_RANGE ||
+				//	abs(player.y - y) > Settings::SQUARE_FOG_RANGE) {
+				//	std::cout << MapElement::FOG;
+				//}
 				else {
 					// (x, y) is within player sight
 					switch (level.map[y][x])
