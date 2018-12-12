@@ -1,11 +1,10 @@
-﻿#include <iostream>
+﻿// POP_2018_12_13_projekt_1_Martyniak_Remigiusz_EIT_7_176036 Visual Studio Community 2017 MSVC (VC++, Toolset 141)
+
+#include <iostream>
 #include <fstream>
 #include <string>
 
-// TODO
-// - relative path to lvl file
-// - menu with lvl selection
-
+using namespace std;
 
 struct MapElement {
 	static const char VERTICAL = 186; // ║
@@ -14,9 +13,9 @@ struct MapElement {
 	static const char UPPER_LEFT_CORNER = 187; // ╗
 	static const char BOTTOM_RIGHT_CORNER = 200; // ╚
 	static const char BOTTOM_LEFT_CORNER = 188; // ╝
-	static const char EMPTY = ' '; 
+	static const char EMPTY = ' ';
 	static const char PLAYER = 'X';
-	static const char FOG = 177; // ▒
+	static const char FOG = 177; // 177 ▒
 	static const char EXIT_AREA = 'W';
 };
 
@@ -37,30 +36,31 @@ struct Symbols {
 struct Settings {
 	static const int MAP_WIDTH = 20;
 	static const int MAP_HEIGHT = 13;
-	static constexpr double FOG_RADIUS = 10.0;
-	static const int SQUARE_FOG_RANGE = 2;
+	int FOG_RADIUS = 4.0;
+	int SQUARE_FOG_RANGE = 4;
 	static const char KEY_EXIT = 'q';
 	static const char KEY_PLAYER_LEFT = 'a';
 	static const char KEY_PLAYER_RIGHT = 'd';
 	static const char KEY_PLAYER_UP = 'w';
 	static const char KEY_PLAYER_DOWN = 's';
-};
+	static const char KEY_HELP = '?';
+} settings;
 
 struct Level {
-	int** map;
+	int** map; // array of indicators
 	int mapHeight;
 	int mapWidth;
 
-	bool loadFromFile(std::string filename) {
-		std::ifstream file;
+	bool loadFromFile(string filename) {
+		ifstream file;
 
 		file.open(filename);
 		if (!file.is_open()) {
-			std::cout << "Could not read file: " << filename << std::endl;
+			cout << "Could not read file: " << filename << endl;
 			file.close();
 			return false;
 		}
-		
+
 		// File successfully opened
 		// Read map dimensions
 		file >> mapWidth;
@@ -91,14 +91,15 @@ struct Player {
 	int y = 10;
 	bool exitAreaEntered = false;
 
-	void move(int vertical_step, int horizontal_step, int** map){
+	void move(int vertical_step, int horizontal_step, int** map) {
 		// Pretend this will be our final position
 		int tmp_y = y + vertical_step;
 		int tmp_x = x + horizontal_step;
 
 		if (map[tmp_y][tmp_x] == Symbols::EXIT_AREA) {
 			exitAreaEntered = true;
-		} else if (map[tmp_y][tmp_x] == Symbols::EMPTY) {
+		}
+		else if (map[tmp_y][tmp_x] == Symbols::EMPTY) {
 			y += vertical_step;
 			x += horizontal_step;
 		}
@@ -111,14 +112,14 @@ struct GameEngine {
 	Player player;
 
 	char readInput() {
-		/*  Block until user will press a key */
+		//  Block until user will press a key 
 		char key;
-		std::cin >> key;
+		cin >> key;
 		return key;
 	}
 
-	void triggerActions(char key) {
-		/* Call behaviour depending on keyboard input */
+	bool triggerActions(char key) {
+		// Call behaviour depending on keyboard input 
 		if (key == Settings::KEY_PLAYER_UP)
 			player.move(-1, 0, level.map);
 		else if (key == Settings::KEY_PLAYER_DOWN)
@@ -127,9 +128,12 @@ struct GameEngine {
 			player.move(0, -1, level.map);
 		else if (key == Settings::KEY_PLAYER_RIGHT)
 			player.move(0, 1, level.map);
-		else
-			// TODO
-			std::cout << "Key not handled TODO" << std::endl;
+		else if (key != Settings::KEY_PLAYER_UP && key != Settings::KEY_PLAYER_UP && key != Settings::KEY_PLAYER_DOWN && key != Settings::KEY_PLAYER_LEFT && key != Settings::KEY_PLAYER_RIGHT && key != Settings::KEY_EXIT && key != Settings::KEY_HELP) {
+			cout << "Unsupported key, try again:" << endl;
+			return false;
+		}
+		return true;
+
 	}
 
 	void runGameLoop() {
@@ -140,23 +144,37 @@ struct GameEngine {
 
 		while (true) {
 			drawLevel();
+			if (input == Settings::KEY_EXIT) {
+				cout << "Exiting..." << endl;
+				break;
+			}
+			else if (input == Settings::KEY_HELP) {
+
+				cout << "Your task is to escape from the maze, by walking into 'W' letter " << endl;
+				cout << "Press 'w' to move up" << endl;
+				cout << "Press 's' to move down" << endl;
+				cout << "Press 'a' to move left" << endl;
+				cout << "Press 'd' to move right" << endl;
+				cout << "Your next move: ";
+
+			}
 
 			// Check if game engine should terminate loop
 			if (player.exitAreaEntered) {
-				std::cout << "You win!" << std::endl;
-				break;
-			}
-			if (input == Settings::KEY_EXIT) {
-				std::cout << "Exiting..." << std::endl;
+				cout << "You win!" << endl;
 				break;
 			}
 
 			// Clear old posistion in map
 			level.map[player.y][player.x] = Symbols::EMPTY;
 
-			// Blocking until it gets some value from keyboard
-			input = readInput();
-			triggerActions(input);
+			// Blocking until it gets valid value from keyboard
+
+			bool keyAccepted = false;
+			do {
+				input = readInput();
+				keyAccepted = triggerActions(input);
+			} while (!keyAccepted);
 
 			// Put player in new position on map
 			level.map[player.y][player.x] = Symbols::PLAYER;
@@ -172,90 +190,108 @@ struct GameEngine {
 				// CIRCLE FOG
 				// Simulate fog using Euclidean distance
 				double distanceFromPlayer = sqrt(pow(player.y - y, 2) + pow(player.x - x, 2));
-				if (distanceFromPlayer > Settings::FOG_RADIUS) {
+				if (distanceFromPlayer > settings.FOG_RADIUS) {
 					// (x, y) is away from the player
-					std::cout << MapElement::FOG;
+					cout << MapElement::FOG;
 				}
-
-				// SQUARE FOG
-				//if (abs(player.x - x) > Settings::SQUARE_FOG_RANGE ||
-				//	abs(player.y - y) > Settings::SQUARE_FOG_RANGE) {
-				//	std::cout << MapElement::FOG;
+					// SQUARE FOG
+				//if (abs(player.x - x) > settings.SQUARE_FOG_RANGE || abs(player.y - y) > settings.SQUARE_FOG_RANGE) {
+					//cout << MapElement::FOG;
 				//}
+
+
+
 				else {
 					// (x, y) is within player sight
 					switch (level.map[y][x])
 					{
-						case Symbols::EMPTY:
-							std::cout << MapElement::EMPTY;
-							break;
-						case Symbols::PLAYER:
-							std::cout << MapElement::PLAYER;
-							break;
+					case Symbols::EMPTY:
+						cout << MapElement::EMPTY;
+						break;
+					case Symbols::PLAYER:
+						cout << MapElement::PLAYER;
+						break;
 
-						case Symbols::VERTICAL:
-							std::cout << MapElement::VERTICAL;
-							break;
+					case Symbols::VERTICAL:
+						cout << MapElement::VERTICAL;
+						break;
 
-						case Symbols::HORIZONTAL:
-							std::cout << MapElement::HORIZONTAL;
-							break;
+					case Symbols::HORIZONTAL:
+						cout << MapElement::HORIZONTAL;
+						break;
 
-						case Symbols::UPPER_RIGHT_CORNER:
-							std::cout << MapElement::UPPER_RIGHT_CORNER;
-							break;
+					case Symbols::UPPER_RIGHT_CORNER:
+						cout << MapElement::UPPER_RIGHT_CORNER;
+						break;
 
-						case Symbols::UPPER_LEFT_CORNER:
-							std::cout << MapElement::UPPER_LEFT_CORNER;
-							break;
+					case Symbols::UPPER_LEFT_CORNER:
+						cout << MapElement::UPPER_LEFT_CORNER;
+						break;
 
-						case Symbols::BOTTOM_RIGHT_CORNER:
-							std::cout << MapElement::BOTTOM_RIGHT_CORNER;
-							break;
+					case Symbols::BOTTOM_RIGHT_CORNER:
+						cout << MapElement::BOTTOM_RIGHT_CORNER;
+						break;
 
-						case Symbols::BOTTOM_LEFT_CORNER:
-							std::cout << MapElement::BOTTOM_LEFT_CORNER;
-							break;
+					case Symbols::BOTTOM_LEFT_CORNER:
+						cout << MapElement::BOTTOM_LEFT_CORNER;
+						break;
 
-						case Symbols::EXIT_AREA:
-							std::cout << MapElement::EXIT_AREA;
-							break;
+					case Symbols::EXIT_AREA:
+						cout << MapElement::EXIT_AREA;
+						break;
 
-						default:
-							// Symbol to MapElement not implemented
-							std::cout << '!';
+					default:
+
+
+						// Symbol to MapElement not implemented
+						cout << '!';
 					}
 				}
 			}
-			std::cout << std::endl;
+			cout << endl;
 		}
 	}
 };
 
 struct Menu {
+
 	int availableLevels = 3;
 
-	std::string askWhichLevel(){
-		std::string levelPaths[] = { "D:\\Repos\\Maze\\lvl1.txt", "D:\\Repos\\Maze\\lvl2.txt", "D:\\Repos\\Maze\\lvl3.txt" };
+	string askWhichLevel() {
+
+		string levelPaths[] = { "D:\\Repos\\Maze\\lvl1.txt", "D:\\Repos\\Maze\\lvl2.txt", "D:\\Repos\\Maze\\lvl3.txt" };
 
 		// Display available levels
 		for (int lvlID = 1; lvlID <= availableLevels; lvlID++) {
-			std::cout << "Level " << lvlID << std::endl;
+			cout << "Level " << lvlID << endl;
 		}
-		std::cout << "Which level you want to play?" << std::endl;
+		cout << "Which level you want to play?" << endl;
 
-		// Wait for input
+		// Choose level
 		int selectedLevelID;
-		std::cin >> selectedLevelID;
+		cin >> selectedLevelID;
+
+
+		while (selectedLevelID > availableLevels || selectedLevelID < 1) {
+
+			cout << "Incorrect lvl number, try again..." << endl;
+			cin >> selectedLevelID;
+			
+		}
+
+		cout << "Set fog range(1-20): ";
+
+		// Choose fog range
+		int fogRange;
+		cin >> fogRange;
+
+
+		//settings.SQUARE_FOG_RANGE = fogRange;
+		settings.FOG_RADIUS = fogRange;
 
 		// Clear console
 		system("cls");
 
-		if (selectedLevelID > availableLevels || selectedLevelID < 1) {
-			// TODO ask in loop
-			std::cout << "Incorrect lvl number, try again" << std::endl;
-			exit(-1);
-		}
 		return levelPaths[selectedLevelID - 1];
 	}
 
@@ -263,12 +299,12 @@ struct Menu {
 
 int main() {
 	Menu menu;
-	GameEngine engine = GameEngine();
+	GameEngine engine;
 
-	std::string lvlPath = menu.askWhichLevel();
+	string lvlPath = menu.askWhichLevel();
 	bool lvlLoadSuccess = engine.level.loadFromFile(lvlPath);
 
-	if(lvlLoadSuccess)
+	if (lvlLoadSuccess)
 		engine.runGameLoop();
 	return 0;
 }
