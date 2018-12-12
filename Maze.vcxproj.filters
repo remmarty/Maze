@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="POP_2018_12_13_projekt_1_Martyniak_Remigiusz_EIT_7_176036.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
